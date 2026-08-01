@@ -1,0 +1,12 @@
+# Member records contain personal contact and address data.
+membership.csv
+
+# Local configuration and generated files
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+
