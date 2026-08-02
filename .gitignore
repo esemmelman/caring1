@@ -1,5 +1,5 @@
 # Member records contain personal contact and address data.
-membership.csv
+membership*.csv
 
 # Local configuration and generated files
 .env
@@ -9,4 +9,7 @@ node_modules/
 dist/
 .DS_Store
 Thumbs.db
+
+# Supabase CLI local state
+.supabase/
 

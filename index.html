@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Find people near a selected community member.">
+    <title>Caring Nearby</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <a class="brand" href="#" aria-label="Caring Nearby home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img">
+              <path d="M12 20.7 4.4 13.5a5 5 0 0 1 7.1-7.1l.5.5.5-.5a5 5 0 0 1 7.1 7.1L12 20.7Z"/>
+            </svg>
+          </span>
+          <span>Caring <strong>Nearby</strong></span>
+        </a>
+        <p class="header-note">Southern California test directory</p>
+      </header>
+
+      <main class="workspace">
+        <aside class="directory-panel" aria-labelledby="directory-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Directory</p>
+              <h1 id="directory-title">Choose a person</h1>
+            </div>
+            <span class="count-badge" id="member-count">0</span>
+          </div>
+
+          <label class="search-box" for="member-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m20 20-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/>
+            </svg>
+            <input id="member-search" type="search" placeholder="Search name or city" autocomplete="off">
+          </label>
+
+          <div class="member-list" id="member-list" role="listbox" aria-label="Test members"></div>
+        </aside>
+
+        <section class="results-panel" aria-live="polite" aria-labelledby="results-title">
+          <div class="selected-card" id="selected-card">
+            <div class="selected-avatar" id="selected-avatar" aria-hidden="true"></div>
+            <div class="selected-copy">
+              <p class="eyebrow">Showing people near</p>
+              <h2 id="selected-name">Select someone</h2>
+              <p id="selected-address">Choose a person from the directory to begin.</p>
+            </div>
+            <div class="selected-pin" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/>
+                <circle cx="12" cy="10" r="2.5"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="results-heading">
+            <div>
+              <p class="eyebrow">Proximity ranking</p>
+              <h2 id="results-title">Nearest people</h2>
+            </div>
+            <span class="sort-label">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h9M8 12h6M8 17h3M4 7h.01M4 12h.01M4 17h.01"/></svg>
+              Closest first
+            </span>
+          </div>
+
+          <div class="empty-state" id="empty-state">
+            <div class="empty-rings" aria-hidden="true"><span></span></div>
+            <h3>Your nearby community will appear here</h3>
+            <p>Select any test person to calculate straight-line distance to every other entry.</p>
+          </div>
+
+          <ol class="results-list" id="results-list"></ol>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
+
