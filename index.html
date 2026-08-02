@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Find people near a selected community member.">
     <title>Caring Nearby</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=0.2.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.example.js"></script>
-    <script src="auth.js" defer></script>
-    <script src="app.js" defer></script>
+    <script src="config.example.js?v=0.2.0"></script>
+    <script src="auth.js?v=0.2.0" defer></script>
+    <script src="app.js?v=0.2.0" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -24,6 +24,7 @@
         </a>
         <div class="header-actions">
           <p class="header-note">Southern California member directory</p>
+          <span class="app-version" title="Application version">v0.2.0</span>
           <span class="auth-email" id="auth-email" hidden></span>
           <button class="text-button" id="sign-out-button" type="button" hidden>Sign out</button>
         </div>

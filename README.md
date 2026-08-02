@@ -1,5 +1,7 @@
 # Caring
 
+Current application version: **0.2.0**
+
 A privacy-conscious web app for finding members nearest to a selected member.
 
 ## Project status
