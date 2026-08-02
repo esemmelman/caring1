@@ -45,4 +45,6 @@ npx supabase secrets set GOOGLE_MAPS_API_KEY=your-key ALLOWED_ORIGIN=https://you
 npx supabase functions deploy route-matrix
 ```
 
-Set `routeMatrixUrl` in a local `config.js` copied from `config.example.js`, and return the signed-in user's Supabase access token from `getAccessToken`. Until authentication and the function are configured, the interface automatically uses direct-distance fallback results.
+The public Supabase project URL, publishable key, function URL, and Auth redirect URL live in `config.example.js`. These values are safe for browser use; never add a secret/service-role key or `GOOGLE_MAPS_API_KEY` there. The site uses invite-only email magic links and forwards the signed-in user's short-lived access token to the function. Until authentication and the function are available, route calculations fall back to direct distance.
+
+In Supabase Auth settings, set the Site URL and an exact redirect URL to `https://esemmelman.github.io/caring1/`. Keep public sign-ups disabled and invite permitted users from Authentication > Users.

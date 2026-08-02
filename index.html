@@ -6,8 +6,9 @@
     <meta name="description" content="Find people near a selected community member.">
     <title>Caring Nearby</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.example.js"></script>
-    <script src="config.js"></script>
+    <script src="auth.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -21,10 +22,30 @@
           </span>
           <span>Caring <strong>Nearby</strong></span>
         </a>
-        <p class="header-note">Southern California test directory</p>
+        <div class="header-actions">
+          <p class="header-note">Southern California test directory</p>
+          <span class="auth-email" id="auth-email" hidden></span>
+          <button class="text-button" id="sign-out-button" type="button" hidden>Sign out</button>
+        </div>
       </header>
 
-      <main class="workspace">
+      <main class="auth-gate" id="auth-gate">
+        <section class="auth-card" aria-labelledby="auth-title">
+          <p class="eyebrow">Private directory</p>
+          <h1 id="auth-title">Sign in to Caring Nearby</h1>
+          <p>Enter your invited email address. We’ll send you a secure sign-in link.</p>
+          <form id="sign-in-form">
+            <label for="sign-in-email">Email address</label>
+            <div class="auth-fields">
+              <input id="sign-in-email" name="email" type="email" autocomplete="email" required>
+              <button type="submit">Send sign-in link</button>
+            </div>
+          </form>
+          <p class="auth-status" id="auth-status" role="status"></p>
+        </section>
+      </main>
+
+      <main class="workspace" id="workspace" hidden>
         <aside class="directory-panel" aria-labelledby="directory-title">
           <div class="panel-heading">
             <div>

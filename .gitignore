@@ -12,4 +12,5 @@ Thumbs.db
 
 # Supabase CLI local state
 .supabase/
+supabase/.temp/
 config.js

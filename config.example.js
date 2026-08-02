@@ -1,8 +1,8 @@
-// Public runtime settings only. Copy this file to config.js for local use.
+// Public browser settings only. The publishable key is intentionally safe to expose.
 // Never put GOOGLE_MAPS_API_KEY or a Supabase secret key in this file.
 window.CARING_CONFIG = {
-  routeMatrixUrl: '',
-  // Return the logged-in user's Supabase access token once Auth is connected.
-  getAccessToken: async () => '',
+  supabaseUrl: 'https://fgomaujsdblpzxhnnqrg.supabase.co',
+  supabasePublishableKey: 'sb_publishable_JOUqLZDnfGu_yCa6k6FVDQ_AYwpr72i',
+  routeMatrixUrl: 'https://fgomaujsdblpzxhnnqrg.supabase.co/functions/v1/route-matrix',
+  authRedirectUrl: 'https://esemmelman.github.io/caring1/',
 };
-
