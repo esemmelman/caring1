@@ -48,6 +48,7 @@ function memberOption(member) {
   button.setAttribute('aria-selected', String(member.id === selectedId));
 
   const copy = document.createElement('span');
+  copy.className = 'member-copy';
   const name = document.createElement('span');
   name.className = 'member-name';
   name.textContent = member.name;
