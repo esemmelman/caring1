@@ -48,3 +48,7 @@ npx supabase functions deploy route-matrix
 The public Supabase project URL, publishable key, function URL, and Auth redirect URL live in `config.example.js`. These values are safe for browser use; never add a secret/service-role key or `GOOGLE_MAPS_API_KEY` there. The site uses invite-only email magic links and forwards the signed-in user's short-lived access token to the function. Until authentication and the function are available, route calculations fall back to direct distance.
 
 In Supabase Auth settings, set the Site URL and an exact redirect URL to `https://esemmelman.github.io/caring1/`. Keep public sign-ups disabled and invite permitted users from Authentication > Users.
+
+The `member-directory` Edge Function validates the caller's Supabase JWT and confirms that the authenticated email exists in `caring.members`. It returns only names, addresses, and coordinates for locatable members; email addresses and phone numbers never leave the private database through this endpoint.
+
+The private `refresh-geocodes` function refreshes up to 25 of the oldest address coordinates each day. Supabase Cron invokes it at 10:00 UTC using a random credential generated and stored in Vault. Coordinates are refreshed on an 18-day target cycle and automatically cleared after 29 days if refreshes fail, complying with Google Maps Platform's 30-day geocode caching limit.

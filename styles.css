@@ -294,6 +294,30 @@ h1 { margin-bottom: 0; font-size: 25px; letter-spacing: -.035em; }
 .distance { color: var(--green-dark); font-size: 14px; font-weight: 780; white-space: nowrap; }
 .distance small { color: var(--muted); font-size: 11px; font-weight: 550; }
 
+.maps-attribution {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  color: #5e5e5e;
+  font-size: 12px;
+}
+
+.maps-attribution span { font-weight: 650; }
+.maps-attribution a, .policy-page a { color: var(--green-dark); }
+
+.policy-page {
+  width: min(100% - 40px, 760px);
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+.policy-back { display: inline-block; margin-bottom: 32px; text-decoration: none; }
+.policy-page article { padding: 40px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); box-shadow: var(--shadow); }
+.policy-page h1 { margin-bottom: 26px; font-size: 34px; }
+.policy-page h2 { margin: 30px 0 9px; font-size: 18px; }
+.policy-page p { color: var(--muted); line-height: 1.7; }
+
 .empty-state {
   min-height: 320px;
   display: grid;
@@ -332,6 +356,7 @@ h1 { margin-bottom: 0; font-size: 25px; letter-spacing: -.035em; }
   .header-note, .auth-email { display: none; }
   .auth-card { padding: 28px 22px; }
   .auth-fields { flex-direction: column; }
+  .policy-page article { padding: 28px 22px; }
   .workspace { grid-template-columns: 1fr; }
   .directory-panel { border-right: 0; border-bottom: 1px solid var(--line); }
   .member-list { max-height: 280px; overflow-y: auto; }

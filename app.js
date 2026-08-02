@@ -1,17 +1,5 @@
-const members = [
-  { id: 1, name: 'Maya Bennett', address: '128 Harbor Walk, Long Beach, CA', city: 'Long Beach', lat: 33.7701, lon: -118.1937 },
-  { id: 2, name: 'Daniel Cho', address: '74 Ocean Terrace, Seal Beach, CA', city: 'Seal Beach', lat: 33.7414, lon: -118.1048 },
-  { id: 3, name: 'Elena Ramirez', address: '215 Citrus Lane, Anaheim, CA', city: 'Anaheim', lat: 33.8366, lon: -117.9143 },
-  { id: 4, name: 'Marcus Green', address: '49 Magnolia Court, Santa Ana, CA', city: 'Santa Ana', lat: 33.7455, lon: -117.8677 },
-  { id: 5, name: 'Nora Patel', address: '302 Coastline Drive, Huntington Beach, CA', city: 'Huntington Beach', lat: 33.6595, lon: -117.9988 },
-  { id: 6, name: 'Theo Williams', address: '88 Jacaranda Way, Pasadena, CA', city: 'Pasadena', lat: 34.1478, lon: -118.1445 },
-  { id: 7, name: 'Sofia Kim', address: '167 Market Street, Irvine, CA', city: 'Irvine', lat: 33.6846, lon: -117.8265 },
-  { id: 8, name: 'Caleb Morgan', address: '510 Palisade Avenue, Torrance, CA', city: 'Torrance', lat: 33.8358, lon: -118.3406 },
-  { id: 9, name: 'Avery Johnson', address: '23 Foothill Place, Claremont, CA', city: 'Claremont', lat: 34.0967, lon: -117.7198 },
-  { id: 10, name: 'Isla Thompson', address: '411 Marina View, Oceanside, CA', city: 'Oceanside', lat: 33.1959, lon: -117.3795 },
-];
-
 const avatarColors = ['#dcece5', '#f5e2dc', '#e5e2f3', '#f2ead6', '#dbeaf2'];
+const RESULT_LIMIT = 24;
 const list = document.querySelector('#member-list');
 const count = document.querySelector('#member-count');
 const search = document.querySelector('#member-search');
@@ -23,11 +11,31 @@ const emptyState = document.querySelector('#empty-state');
 const sortLabel = document.querySelector('#sort-label');
 const config = window.CARING_CONFIG ?? {};
 
+let members = [];
 let selectedId = null;
 let selectionVersion = 0;
 
 function initials(name) {
   return name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function colorIndex(id) {
+  let hash = 0;
+  for (const character of String(id)) hash = ((hash << 5) - hash) + character.charCodeAt(0);
+  return Math.abs(hash) % avatarColors.length;
+}
+
+function cityFromAddress(address) {
+  const parts = address.split(',').map((part) => part.trim()).filter(Boolean);
+  return parts.length >= 2 ? parts.at(-2) : '';
+}
+
+function avatar(name, id) {
+  const element = document.createElement('span');
+  element.className = 'avatar';
+  element.style.setProperty('--avatar-bg', avatarColors[colorIndex(id)]);
+  element.textContent = initials(name);
+  return element;
 }
 
 function memberOption(member) {
@@ -37,11 +45,22 @@ function memberOption(member) {
   button.role = 'option';
   button.dataset.id = member.id;
   button.setAttribute('aria-selected', String(member.id === selectedId));
-  button.innerHTML = `
-    <span class="avatar" style="--avatar-bg:${avatarColors[(member.id - 1) % avatarColors.length]}">${initials(member.name)}</span>
-    <span><span class="member-name">${member.name}</span><span class="member-city">${member.city}, CA</span></span>
-    <span class="chevron" aria-hidden="true">›</span>
-  `;
+
+  const copy = document.createElement('span');
+  const name = document.createElement('span');
+  name.className = 'member-name';
+  name.textContent = member.name;
+  const city = document.createElement('span');
+  city.className = 'member-city';
+  city.textContent = member.city;
+  copy.append(name, city);
+
+  const chevron = document.createElement('span');
+  chevron.className = 'chevron';
+  chevron.setAttribute('aria-hidden', 'true');
+  chevron.textContent = '›';
+
+  button.append(avatar(member.name, member.id), copy, chevron);
   button.addEventListener('click', () => selectMember(member.id));
   return button;
 }
@@ -58,7 +77,7 @@ function renderDirectory(query = '') {
   if (!filtered.length) {
     const message = document.createElement('p');
     message.className = 'no-matches';
-    message.textContent = 'No matching people found.';
+    message.textContent = members.length ? 'No matching people found.' : 'No directory members are available.';
     list.append(message);
   }
 }
@@ -79,12 +98,27 @@ function resultRow(member, index) {
   const item = document.createElement('li');
   item.className = 'result-row';
   item.style.animationDelay = `${Math.min(index * 35, 250)}ms`;
-  item.innerHTML = `
-    <span class="rank">${String(index + 1).padStart(2, '0')}</span>
-    <span class="avatar" style="--avatar-bg:${avatarColors[(member.id - 1) % avatarColors.length]}">${initials(member.name)}</span>
-    <span class="result-copy"><strong>${member.name}</strong><span>${member.address}</span></span>
-    <span class="distance">${member.distance.toFixed(1)} <small>miles${member.durationMinutes ? ` · ${member.durationMinutes} min` : ' direct'}</small></span>
-  `;
+
+  const rank = document.createElement('span');
+  rank.className = 'rank';
+  rank.textContent = String(index + 1).padStart(2, '0');
+
+  const copy = document.createElement('span');
+  copy.className = 'result-copy';
+  const name = document.createElement('strong');
+  name.textContent = member.name;
+  const address = document.createElement('span');
+  address.textContent = member.address;
+  copy.append(name, address);
+
+  const distance = document.createElement('span');
+  distance.className = 'distance';
+  distance.append(`${member.distance.toFixed(1)} `);
+  const detail = document.createElement('small');
+  detail.textContent = `miles${member.durationMinutes ? ` · ${member.durationMinutes} min` : ' direct'}`;
+  distance.append(detail);
+
+  item.append(rank, avatar(member.name, member.id), copy, distance);
   return item;
 }
 
@@ -113,33 +147,34 @@ async function selectMember(id) {
   const version = ++selectionVersion;
   selectedId = id;
   const selected = members.find((member) => member.id === id);
-  const others = members.filter((member) => member.id !== id);
-  let ranked = others
+  const candidates = members
+    .filter((member) => member.id !== id)
     .map((member) => ({ ...member, distance: distanceMiles(selected, member) }))
-    .sort((a, b) => a.distance - b.distance);
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, RESULT_LIMIT);
 
   selectedName.textContent = selected.name;
   selectedAddress.textContent = selected.address;
   selectedAvatar.textContent = initials(selected.name);
   emptyState.hidden = true;
-  resultsList.replaceChildren(...ranked.map(resultRow));
+  resultsList.replaceChildren(...candidates.map(resultRow));
   renderDirectory(search.value);
 
   sortLabel.classList.add('is-loading');
   sortLabel.lastChild.textContent = ' Calculating drive times…';
 
   try {
-    const routes = await fetchDrivingRoutes(selected, others);
+    const routes = await fetchDrivingRoutes(selected, candidates);
     if (version !== selectionVersion) return;
 
     if (routes?.length) {
       const byDestination = new Map(routes.map((route) => [route.destinationIndex, route]));
-      ranked = others
+      const ranked = candidates
         .map((member, destinationIndex) => {
           const route = byDestination.get(destinationIndex);
           return {
             ...member,
-            distance: route?.distanceMiles ?? distanceMiles(selected, member),
+            distance: route?.distanceMiles ?? member.distance,
             durationMinutes: route?.durationMinutes ?? null,
           };
         })
@@ -159,5 +194,38 @@ async function selectMember(id) {
   }
 }
 
+async function loadMembers() {
+  list.innerHTML = '<p class="no-matches">Loading directory…</p>';
+  if (!config.memberDirectoryUrl || typeof config.getAccessToken !== 'function') {
+    throw new Error('The member directory is not configured.');
+  }
+
+  const accessToken = await config.getAccessToken();
+  if (!accessToken) return;
+
+  const response = await fetch(config.memberDirectoryUrl, {
+    headers: { 'Authorization': `Bearer ${accessToken}` },
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? 'Unable to load the directory.');
+
+  members = (body.members ?? []).map((member) => ({
+    id: member.id,
+    name: member.name,
+    address: member.address,
+    city: cityFromAddress(member.address),
+    lat: member.latitude,
+    lon: member.longitude,
+  }));
+  renderDirectory();
+}
+
 search.addEventListener('input', (event) => renderDirectory(event.target.value));
-renderDirectory();
+loadMembers().catch((error) => {
+  console.error(error);
+  list.innerHTML = '';
+  const message = document.createElement('p');
+  message.className = 'no-matches';
+  message.textContent = error.message;
+  list.append(message);
+});

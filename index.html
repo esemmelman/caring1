@@ -23,7 +23,7 @@
           <span>Caring <strong>Nearby</strong></span>
         </a>
         <div class="header-actions">
-          <p class="header-note">Southern California test directory</p>
+          <p class="header-note">Southern California member directory</p>
           <span class="auth-email" id="auth-email" hidden></span>
           <button class="text-button" id="sign-out-button" type="button" hidden>Sign out</button>
         </div>
@@ -62,7 +62,7 @@
             <input id="member-search" type="search" placeholder="Search name or city" autocomplete="off">
           </label>
 
-          <div class="member-list" id="member-list" role="listbox" aria-label="Test members"></div>
+          <div class="member-list" id="member-list" role="listbox" aria-label="Community members"></div>
         </aside>
 
         <section class="results-panel" aria-live="polite" aria-labelledby="results-title">
@@ -95,10 +95,16 @@
           <div class="empty-state" id="empty-state">
             <div class="empty-rings" aria-hidden="true"><span></span></div>
             <h3>Your nearby community will appear here</h3>
-            <p>Select any test person to calculate straight-line distance to every other entry.</p>
+            <p>Select a person to find the nearest community members by driving distance.</p>
           </div>
 
           <ol class="results-list" id="results-list"></ol>
+
+          <footer class="maps-attribution">
+            <span>Google Maps</span>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+          </footer>
         </section>
       </main>
     </div>
