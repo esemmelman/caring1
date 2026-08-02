@@ -1,6 +1,6 @@
 # Caring
 
-Current application version: **0.2.1**
+Current application version: **0.3.0**
 
 A privacy-conscious web app for finding members nearest to a selected member.
 
@@ -52,6 +52,8 @@ The public Supabase project URL, publishable key, function URL, and Auth redirec
 In Supabase Auth settings, set the Site URL and an exact redirect URL to `https://esemmelman.github.io/caring1/`. Keep public sign-ups disabled and invite permitted users from Authentication > Users.
 
 The `member-directory` Edge Function validates the caller's Supabase JWT and confirms that the authenticated email exists in `caring.members`. It returns names, addresses, coordinates, email addresses, and phone numbers for visible locatable members so authorized users can view contact details. The endpoint is unavailable to anonymous users and non-member project accounts.
+
+The `member-admin` Edge Function restricts create, update, and delete operations to emails in the `DIRECTORY_ADMIN_EMAILS` function secret. Add and edit requests geocode the submitted address server-side before saving; delete requests permanently remove the selected row after client confirmation.
 
 The `caring.members.dont_show` flag excludes addressless records and all but one member at a duplicate normalized address. For existing duplicates, the alphabetically first `name_first_last` record remains visible.
 

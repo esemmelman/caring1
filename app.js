@@ -10,11 +10,26 @@ const selectedAvatar = document.querySelector('#selected-avatar');
 const resultsList = document.querySelector('#results-list');
 const emptyState = document.querySelector('#empty-state');
 const sortLabel = document.querySelector('#sort-label');
+const directoryActions = document.querySelector('#directory-actions');
+const directoryStatus = document.querySelector('#directory-status');
+const addMemberButton = document.querySelector('#add-member-button');
+const editMemberButton = document.querySelector('#edit-member-button');
+const deleteMemberButton = document.querySelector('#delete-member-button');
+const memberDialog = document.querySelector('#member-dialog');
+const memberForm = document.querySelector('#member-form');
+const memberDialogTitle = document.querySelector('#member-dialog-title');
+const memberDialogStatus = document.querySelector('#member-dialog-status');
+const memberIdInput = document.querySelector('#member-id');
+const memberNameInput = document.querySelector('#member-name');
+const memberAddressInput = document.querySelector('#member-address');
+const memberEmailInput = document.querySelector('#member-email');
+const memberPhoneInput = document.querySelector('#member-phone');
 const config = window.CARING_CONFIG ?? {};
 
 let members = [];
 let selectedId = null;
 let selectionVersion = 0;
+let canManage = false;
 
 function initials(name) {
   return name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase();
@@ -82,6 +97,9 @@ function renderDirectory(query = '') {
     message.textContent = members.length ? 'No matching people found.' : 'No directory members are available.';
     list.append(message);
   }
+
+  editMemberButton.disabled = !canManage || !selectedId;
+  deleteMemberButton.disabled = !canManage || !selectedId;
 }
 
 function distanceMiles(a, b) {
@@ -154,6 +172,18 @@ function showContactDetails(member) {
   }
 
   selectedContact.hidden = !selectedContact.childElementCount;
+}
+
+function clearSelection() {
+  selectedId = null;
+  selectionVersion += 1;
+  selectedName.textContent = 'Select someone';
+  selectedAddress.textContent = 'Choose a person from the directory to begin.';
+  selectedAvatar.textContent = '';
+  selectedContact.replaceChildren();
+  selectedContact.hidden = true;
+  resultsList.replaceChildren();
+  emptyState.hidden = false;
 }
 
 async function fetchDrivingRoutes(origin, destinations) {
@@ -229,7 +259,85 @@ async function selectMember(id) {
   }
 }
 
-async function loadMembers() {
+function openMemberDialog(member = null) {
+  memberForm.reset();
+  memberDialogStatus.textContent = '';
+  memberDialogTitle.textContent = member ? 'Edit member' : 'Add member';
+  memberIdInput.value = member?.id ?? '';
+  memberNameInput.value = member?.name ?? '';
+  memberAddressInput.value = member?.address ?? '';
+  memberEmailInput.value = member?.email ?? '';
+  memberPhoneInput.value = member?.phone ?? '';
+  memberDialog.showModal();
+  memberNameInput.focus();
+}
+
+async function adminRequest(payload) {
+  if (!config.memberAdminUrl || typeof config.getAccessToken !== 'function') {
+    throw new Error('Directory administration is not configured.');
+  }
+  const accessToken = await config.getAccessToken();
+  if (!accessToken) throw new Error('Your session has expired. Please sign in again.');
+
+  const response = await fetch(config.memberAdminUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? 'Unable to update the directory.');
+  return body;
+}
+
+async function saveMember(event) {
+  event.preventDefault();
+  const saveButton = memberForm.querySelector('[type="submit"]');
+  saveButton.disabled = true;
+  memberDialogStatus.textContent = 'Saving and validating the address…';
+
+  try {
+    const id = memberIdInput.value;
+    const result = await adminRequest({
+      action: id ? 'update' : 'create',
+      id: id || undefined,
+      name: memberNameInput.value,
+      address: memberAddressInput.value,
+      email: memberEmailInput.value,
+      phone: memberPhoneInput.value,
+    });
+    memberDialog.close();
+    directoryStatus.textContent = id ? 'Member updated.' : 'Member added.';
+    await loadMembers(result.id);
+  } catch (error) {
+    memberDialogStatus.textContent = error.message;
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
+async function deleteSelectedMember() {
+  const member = members.find((candidate) => candidate.id === selectedId);
+  if (!member || !window.confirm(`Delete ${member.name} from the directory? This cannot be undone.`)) return;
+
+  deleteMemberButton.disabled = true;
+  directoryStatus.textContent = 'Deleting member…';
+  try {
+    await adminRequest({ action: 'delete', id: member.id });
+    members = members.filter((candidate) => candidate.id !== member.id);
+    clearSelection();
+    directoryStatus.textContent = 'Member deleted.';
+    await loadMembers();
+  } catch (error) {
+    directoryStatus.textContent = error.message;
+  } finally {
+    renderDirectory(search.value);
+  }
+}
+
+async function loadMembers(preferredId = null) {
   list.innerHTML = '<p class="no-matches">Loading directory…</p>';
   if (!config.memberDirectoryUrl || typeof config.getAccessToken !== 'function') {
     throw new Error('The member directory is not configured.');
@@ -244,6 +352,8 @@ async function loadMembers() {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body.error ?? 'Unable to load the directory.');
 
+  canManage = body.canManage === true;
+  directoryActions.hidden = !canManage;
   members = (body.members ?? []).map((member) => ({
     id: member.id,
     name: member.name,
@@ -254,10 +364,23 @@ async function loadMembers() {
     email: member.email,
     phone: member.phone,
   }));
+  if (selectedId && !members.some((member) => member.id === selectedId)) clearSelection();
   renderDirectory();
+  if (preferredId && members.some((member) => member.id === preferredId)) {
+    await selectMember(preferredId);
+  }
 }
 
 search.addEventListener('input', (event) => renderDirectory(event.target.value));
+addMemberButton.addEventListener('click', () => openMemberDialog());
+editMemberButton.addEventListener('click', () => {
+  const member = members.find((candidate) => candidate.id === selectedId);
+  if (member) openMemberDialog(member);
+});
+deleteMemberButton.addEventListener('click', deleteSelectedMember);
+memberForm.addEventListener('submit', saveMember);
+document.querySelector('#member-dialog-close').addEventListener('click', () => memberDialog.close());
+document.querySelector('#member-cancel-button').addEventListener('click', () => memberDialog.close());
 loadMembers().catch((error) => {
   console.error(error);
   list.innerHTML = '';

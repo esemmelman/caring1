@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.member-directory]
 verify_jwt = true
+
+[functions.member-admin]
+verify_jwt = true

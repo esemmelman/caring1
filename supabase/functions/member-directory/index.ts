@@ -11,6 +11,15 @@ function configuredKey(jsonName: string, legacyName: string) {
   return Deno.env.get(legacyName) ?? '';
 }
 
+function adminEmails() {
+  return new Set(
+    (Deno.env.get('DIRECTORY_ADMIN_EMAILS') ?? '')
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
 function corsHeaders(request: Request) {
   const allowedOrigin = Deno.env.get('ALLOWED_ORIGIN') ?? '';
   const requestOrigin = request.headers.get('origin') ?? '';
@@ -72,6 +81,8 @@ Deno.serve(async (request) => {
     );
   }
 
-  return new Response(JSON.stringify({ members: data ?? [] }), { status: 200, headers });
+  return new Response(JSON.stringify({
+    members: data ?? [],
+    canManage: adminEmails().has(user.email.toLowerCase()),
+  }), { status: 200, headers });
 });
-

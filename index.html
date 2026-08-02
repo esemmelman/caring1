@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Find people near a selected community member.">
     <title>Caring Nearby</title>
-    <link rel="stylesheet" href="styles.css?v=0.2.1">
+    <link rel="stylesheet" href="styles.css?v=0.3.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.example.js?v=0.2.1"></script>
-    <script src="auth.js?v=0.2.1" defer></script>
-    <script src="app.js?v=0.2.1" defer></script>
+    <script src="config.example.js?v=0.3.0"></script>
+    <script src="auth.js?v=0.3.0" defer></script>
+    <script src="app.js?v=0.3.0" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -24,7 +24,7 @@
         </a>
         <div class="header-actions">
           <p class="header-note">Southern California member directory</p>
-          <span class="app-version" title="Application version">v0.2.1</span>
+          <span class="app-version" title="Application version">v0.3.0</span>
           <span class="auth-email" id="auth-email" hidden></span>
           <button class="text-button" id="sign-out-button" type="button" hidden>Sign out</button>
         </div>
@@ -60,8 +60,15 @@
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m20 20-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/>
             </svg>
-            <input id="member-search" type="search" placeholder="Search name or city" autocomplete="off">
+            <input id="member-search" type="search" placeholder="Search name or address" autocomplete="off">
           </label>
+
+          <div class="directory-actions" id="directory-actions" hidden>
+            <button type="button" id="add-member-button">Add</button>
+            <button type="button" id="edit-member-button" disabled>Edit</button>
+            <button type="button" id="delete-member-button" class="danger-button" disabled>Delete</button>
+          </div>
+          <p class="directory-status" id="directory-status" role="status"></p>
 
           <div class="member-list" id="member-list" role="listbox" aria-label="Community members"></div>
         </aside>
@@ -109,6 +116,32 @@
           </footer>
         </section>
       </main>
+
+      <dialog class="member-dialog" id="member-dialog">
+        <form id="member-form">
+          <div class="dialog-heading">
+            <div>
+              <p class="eyebrow">Directory record</p>
+              <h2 id="member-dialog-title">Add member</h2>
+            </div>
+            <button type="button" class="dialog-close" id="member-dialog-close" aria-label="Close">×</button>
+          </div>
+          <input id="member-id" type="hidden">
+          <label for="member-name">Name</label>
+          <input id="member-name" type="text" autocomplete="name" required>
+          <label for="member-address">Address</label>
+          <input id="member-address" type="text" autocomplete="street-address" required>
+          <label for="member-email">Email</label>
+          <input id="member-email" type="email" autocomplete="email">
+          <label for="member-phone">Phone</label>
+          <input id="member-phone" type="tel" autocomplete="tel">
+          <p class="dialog-status" id="member-dialog-status" role="status"></p>
+          <div class="dialog-actions">
+            <button type="button" id="member-cancel-button">Cancel</button>
+            <button type="submit" class="primary-button">Save member</button>
+          </div>
+        </form>
+      </dialog>
     </div>
   </body>
 </html>

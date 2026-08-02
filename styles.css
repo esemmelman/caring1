@@ -137,6 +137,20 @@ button, input { font: inherit; }
   background: rgb(255 255 255 / 66%);
 }
 
+.directory-actions { margin: -5px 0 16px; display: flex; gap: 8px; }
+.directory-actions button, .dialog-actions button, .dialog-close {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--green-dark);
+  background: var(--surface);
+  font-weight: 700;
+  cursor: pointer;
+}
+.directory-actions button:disabled, .dialog-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.directory-actions .danger-button { color: #a33f35; }
+.directory-status { min-height: 18px; margin: -8px 0 7px; color: var(--muted); font-size: 12px; }
+
 .panel-heading, .results-heading {
   display: flex;
   align-items: flex-end;
@@ -258,6 +272,9 @@ h1 { margin-bottom: 0; font-size: 25px; letter-spacing: -.035em; }
   border-radius: 22px;
   background: linear-gradient(135deg, #fff 5%, #edf6f1 100%);
   box-shadow: var(--shadow);
+  position: sticky;
+  top: 18px;
+  z-index: 5;
 }
 
 .selected-avatar {
@@ -342,6 +359,34 @@ h1 { margin-bottom: 0; font-size: 25px; letter-spacing: -.035em; }
 .policy-page h1 { margin-bottom: 26px; font-size: 34px; }
 .policy-page h2 { margin: 30px 0 9px; font-size: 18px; }
 .policy-page p { color: var(--muted); line-height: 1.7; }
+
+.member-dialog {
+  width: min(92vw, 560px);
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 25px 80px rgb(20 48 40 / 25%);
+}
+.member-dialog::backdrop { background: rgb(20 38 33 / 48%); backdrop-filter: blur(3px); }
+.member-dialog form { padding: 30px; display: grid; gap: 8px; }
+.dialog-heading { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
+.dialog-heading h2 { margin: 0; font-size: 24px; }
+.dialog-close { padding: 3px 10px; font-size: 22px; line-height: 1; }
+.member-dialog label { margin-top: 7px; font-size: 12px; font-weight: 750; }
+.member-dialog input:not([type="hidden"]) {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: white;
+}
+.member-dialog input:focus { outline: 3px solid rgb(45 116 95 / 12%); border-color: var(--green); }
+.dialog-status { min-height: 20px; margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 9px; }
+.dialog-actions .primary-button { border-color: var(--green); color: white; background: var(--green); }
 
 .empty-state {
   min-height: 320px;
