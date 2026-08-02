@@ -5,6 +5,7 @@ const count = document.querySelector('#member-count');
 const search = document.querySelector('#member-search');
 const selectedName = document.querySelector('#selected-name');
 const selectedAddress = document.querySelector('#selected-address');
+const selectedContact = document.querySelector('#selected-contact');
 const selectedAvatar = document.querySelector('#selected-avatar');
 const resultsList = document.querySelector('#results-list');
 const emptyState = document.querySelector('#empty-state');
@@ -50,10 +51,10 @@ function memberOption(member) {
   const name = document.createElement('span');
   name.className = 'member-name';
   name.textContent = member.name;
-  const city = document.createElement('span');
-  city.className = 'member-city';
-  city.textContent = member.city;
-  copy.append(name, city);
+  const address = document.createElement('span');
+  address.className = 'member-address';
+  address.textContent = member.address;
+  copy.append(name, address);
 
   const chevron = document.createElement('span');
   chevron.className = 'chevron';
@@ -68,7 +69,7 @@ function memberOption(member) {
 function renderDirectory(query = '') {
   const normalized = query.trim().toLowerCase();
   const filtered = members.filter((member) =>
-    `${member.name} ${member.city}`.toLowerCase().includes(normalized)
+    `${member.name} ${member.address}`.toLowerCase().includes(normalized)
   );
 
   list.replaceChildren(...filtered.map(memberOption));
@@ -97,6 +98,9 @@ function distanceMiles(a, b) {
 function resultRow(member, index) {
   const item = document.createElement('li');
   item.className = 'result-row';
+  item.role = 'button';
+  item.tabIndex = 0;
+  item.setAttribute('aria-label', `Show contact details for ${member.name}`);
   item.style.animationDelay = `${Math.min(index * 35, 250)}ms`;
 
   const rank = document.createElement('span');
@@ -119,7 +123,36 @@ function resultRow(member, index) {
   distance.append(detail);
 
   item.append(rank, avatar(member.name, member.id), copy, distance);
+  item.addEventListener('click', () => selectMember(member.id));
+  item.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      selectMember(member.id);
+    }
+  });
   return item;
+}
+
+function showContactDetails(member) {
+  selectedContact.replaceChildren();
+
+  if (member.phone) {
+    const phone = document.createElement('a');
+    phone.href = `tel:${member.phone.replace(/[^\d+]/g, '')}`;
+    phone.textContent = member.phone;
+    phone.setAttribute('aria-label', `Call ${member.name} at ${member.phone}`);
+    selectedContact.append(phone);
+  }
+
+  if (member.email) {
+    const email = document.createElement('a');
+    email.href = `mailto:${member.email}`;
+    email.textContent = member.email;
+    email.setAttribute('aria-label', `Email ${member.name} at ${member.email}`);
+    selectedContact.append(email);
+  }
+
+  selectedContact.hidden = !selectedContact.childElementCount;
 }
 
 async function fetchDrivingRoutes(origin, destinations) {
@@ -156,6 +189,7 @@ async function selectMember(id) {
   selectedName.textContent = selected.name;
   selectedAddress.textContent = selected.address;
   selectedAvatar.textContent = initials(selected.name);
+  showContactDetails(selected);
   emptyState.hidden = true;
   resultsList.replaceChildren(...candidates.map(resultRow));
   renderDirectory(search.value);
@@ -216,6 +250,8 @@ async function loadMembers() {
     city: cityFromAddress(member.address),
     lat: member.latitude,
     lon: member.longitude,
+    email: member.email,
+    phone: member.phone,
   }));
   renderDirectory();
 }

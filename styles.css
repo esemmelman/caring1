@@ -222,7 +222,7 @@ h1 { margin-bottom: 0; font-size: 25px; letter-spacing: -.035em; }
 }
 
 .member-name { display: block; margin-bottom: 3px; font-size: 14px; font-weight: 720; }
-.member-city { display: block; color: var(--muted); font-size: 12px; }
+.member-address { display: block; color: var(--muted); font-size: 11px; line-height: 1.4; }
 .chevron { color: #9bada7; font-size: 20px; }
 .no-matches { padding: 24px 8px; color: var(--muted); font-size: 13px; text-align: center; }
 
@@ -254,7 +254,9 @@ h1 { margin-bottom: 0; font-size: 25px; letter-spacing: -.035em; }
 }
 
 .selected-copy h2 { margin-bottom: 7px; font-size: clamp(24px, 3vw, 32px); letter-spacing: -.04em; }
-.selected-copy > p:last-child { margin-bottom: 0; color: var(--muted); font-size: 14px; }
+#selected-address { margin-bottom: 0; color: var(--muted); font-size: 14px; }
+.selected-contact { margin-top: 11px; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.selected-contact a { color: var(--green-dark); font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
 .selected-pin { color: var(--coral); }
 .selected-pin svg { width: 42px; fill: none; stroke: currentColor; stroke-width: 1.5; }
 
@@ -286,7 +288,11 @@ h1 { margin-bottom: 0; font-size: 25px; letter-spacing: -.035em; }
   background: var(--surface);
   box-shadow: 0 5px 18px rgb(30 62 54 / 4%);
   animation: rise .35s both;
+  cursor: pointer;
 }
+
+.result-row:hover { border-color: #bdd8cc; box-shadow: 0 7px 22px rgb(30 62 54 / 9%); }
+.result-row:focus-visible { outline: 3px solid rgb(45 116 95 / 20%); outline-offset: 2px; }
 
 .rank { color: #9aaba5; font-size: 12px; font-weight: 800; text-align: center; }
 .result-copy strong { display: block; margin-bottom: 4px; font-size: 14px; }
