@@ -51,4 +51,6 @@ In Supabase Auth settings, set the Site URL and an exact redirect URL to `https:
 
 The `member-directory` Edge Function validates the caller's Supabase JWT and confirms that the authenticated email exists in `caring.members`. It returns only names, addresses, and coordinates for locatable members; email addresses and phone numbers never leave the private database through this endpoint.
 
+The `caring.members.dont_show` flag excludes addressless records and all but one member at a duplicate normalized address. For existing duplicates, the alphabetically first `name_first_last` record remains visible.
+
 The private `refresh-geocodes` function refreshes up to 25 of the oldest address coordinates each day. Supabase Cron invokes it at 10:00 UTC using a random credential generated and stored in Vault. Coordinates are refreshed on an 18-day target cycle and automatically cleared after 29 days if refreshes fail, complying with Google Maps Platform's 30-day geocode caching limit.
