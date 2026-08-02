@@ -1,0 +1,3 @@
+[functions.route-matrix]
+verify_jwt = true
+

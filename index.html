@@ -6,6 +6,8 @@
     <meta name="description" content="Find people near a selected community member.">
     <title>Caring Nearby</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="config.example.js"></script>
+    <script src="config.js"></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -63,9 +65,9 @@
               <p class="eyebrow">Proximity ranking</p>
               <h2 id="results-title">Nearest people</h2>
             </div>
-            <span class="sort-label">
+            <span class="sort-label" id="sort-label">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h9M8 12h6M8 17h3M4 7h.01M4 12h.01M4 17h.01"/></svg>
-              Closest first
+              Closest drive first
             </span>
           </div>
 
@@ -81,4 +83,3 @@
     </div>
   </body>
 </html>
-

@@ -35,3 +35,14 @@ Before importing, copy `.env.example` to `.env` and put the Session pooler conne
 Never place the database connection string or a Supabase secret/service-role key in HTML or browser JavaScript.
 
 The member table lives in the dedicated `caring` schema rather than `public`, allowing this app to share an existing Supabase project while remaining isolated from its other applications. Do not add `caring` to the Data API's exposed schemas; access should go through narrowly scoped server-side functions added for the app.
+
+## Google driving routes
+
+The `route-matrix` Supabase Edge Function proxies Google Routes Compute Route Matrix. It accepts coordinates only and keeps `GOOGLE_MAPS_API_KEY` server-side. Deploy it with JWT verification enabled and configure these function secrets:
+
+```powershell
+npx supabase secrets set GOOGLE_MAPS_API_KEY=your-key ALLOWED_ORIGIN=https://your-site.example
+npx supabase functions deploy route-matrix
+```
+
+Set `routeMatrixUrl` in a local `config.js` copied from `config.example.js`, and return the signed-in user's Supabase access token from `getAccessToken`. Until authentication and the function are configured, the interface automatically uses direct-distance fallback results.

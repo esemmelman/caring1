@@ -20,8 +20,11 @@ const selectedAddress = document.querySelector('#selected-address');
 const selectedAvatar = document.querySelector('#selected-avatar');
 const resultsList = document.querySelector('#results-list');
 const emptyState = document.querySelector('#empty-state');
+const sortLabel = document.querySelector('#sort-label');
+const config = window.CARING_CONFIG ?? {};
 
 let selectedId = null;
+let selectionVersion = 0;
 
 function initials(name) {
   return name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase();
@@ -80,16 +83,38 @@ function resultRow(member, index) {
     <span class="rank">${String(index + 1).padStart(2, '0')}</span>
     <span class="avatar" style="--avatar-bg:${avatarColors[(member.id - 1) % avatarColors.length]}">${initials(member.name)}</span>
     <span class="result-copy"><strong>${member.name}</strong><span>${member.address}</span></span>
-    <span class="distance">${member.distance.toFixed(1)} <small>miles</small></span>
+    <span class="distance">${member.distance.toFixed(1)} <small>miles${member.durationMinutes ? ` · ${member.durationMinutes} min` : ' direct'}</small></span>
   `;
   return item;
 }
 
-function selectMember(id) {
+async function fetchDrivingRoutes(origin, destinations) {
+  if (!config.routeMatrixUrl || typeof config.getAccessToken !== 'function') return null;
+  const accessToken = await config.getAccessToken();
+  if (!accessToken) return null;
+
+  const response = await fetch(config.routeMatrixUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      origin: { lat: origin.lat, lon: origin.lon },
+      destinations: destinations.map(({ lat, lon }) => ({ lat, lon })),
+    }),
+  });
+
+  if (!response.ok) throw new Error('Driving routes are unavailable.');
+  return (await response.json()).routes;
+}
+
+async function selectMember(id) {
+  const version = ++selectionVersion;
   selectedId = id;
   const selected = members.find((member) => member.id === id);
-  const ranked = members
-    .filter((member) => member.id !== id)
+  const others = members.filter((member) => member.id !== id);
+  let ranked = others
     .map((member) => ({ ...member, distance: distanceMiles(selected, member) }))
     .sort((a, b) => a.distance - b.distance);
 
@@ -99,8 +124,40 @@ function selectMember(id) {
   emptyState.hidden = true;
   resultsList.replaceChildren(...ranked.map(resultRow));
   renderDirectory(search.value);
+
+  sortLabel.classList.add('is-loading');
+  sortLabel.lastChild.textContent = ' Calculating drive times…';
+
+  try {
+    const routes = await fetchDrivingRoutes(selected, others);
+    if (version !== selectionVersion) return;
+
+    if (routes?.length) {
+      const byDestination = new Map(routes.map((route) => [route.destinationIndex, route]));
+      ranked = others
+        .map((member, destinationIndex) => {
+          const route = byDestination.get(destinationIndex);
+          return {
+            ...member,
+            distance: route?.distanceMiles ?? distanceMiles(selected, member),
+            durationMinutes: route?.durationMinutes ?? null,
+          };
+        })
+        .sort((a, b) => (a.durationMinutes ?? Infinity) - (b.durationMinutes ?? Infinity));
+      resultsList.replaceChildren(...ranked.map(resultRow));
+      sortLabel.lastChild.textContent = ' Closest drive first';
+    } else {
+      sortLabel.lastChild.textContent = ' Closest direct distance';
+    }
+  } catch (error) {
+    if (version === selectionVersion) {
+      console.warn(error.message);
+      sortLabel.lastChild.textContent = ' Direct-distance fallback';
+    }
+  } finally {
+    if (version === selectionVersion) sortLabel.classList.remove('is-loading');
+  }
 }
 
 search.addEventListener('input', (event) => renderDirectory(event.target.value));
 renderDirectory();
-
