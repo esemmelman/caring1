@@ -62,7 +62,7 @@ Deno.serve(async (request) => {
 
   return new Response(JSON.stringify({
     members: data ?? [],
-    canManage: false,
+    canManage: true,
     session,
   }), { status: 200, headers });
 });

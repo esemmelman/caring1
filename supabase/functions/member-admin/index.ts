@@ -1,3 +1,4 @@
+import { authenticate } from '../_shared/session.mjs';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const GOOGLE_GEOCODING_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
@@ -13,14 +14,6 @@ function configuredKey(jsonName: string, legacyName: string) {
   return Deno.env.get(legacyName) ?? '';
 }
 
-function adminEmails() {
-  return new Set(
-    (Deno.env.get('DIRECTORY_ADMIN_EMAILS') ?? '')
-      .split(',')
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean),
-  );
-}
 
 function corsHeaders(request: Request) {
   const allowedOrigin = Deno.env.get('ALLOWED_ORIGIN') ?? '';
@@ -56,21 +49,13 @@ Deno.serve(async (request) => {
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-  const publishableKey = configuredKey('SUPABASE_PUBLISHABLE_KEYS', 'SUPABASE_ANON_KEY');
   const secretKey = configuredKey('SUPABASE_SECRET_KEYS', 'SUPABASE_SERVICE_ROLE_KEY');
   const googleApiKey = Deno.env.get('GOOGLE_MAPS_API_KEY') ?? '';
-  const accessToken = (request.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
-
-  if (!supabaseUrl || !publishableKey || !secretKey || !googleApiKey || !accessToken) {
-    return new Response(JSON.stringify({ error: 'Unauthorized.' }), { status: 401, headers });
+  if (!authenticate(request)) {
+    return new Response(JSON.stringify({ error: 'Passcode access is required.' }), { status: 401, headers });
   }
-
-  const authClient = createClient(supabaseUrl, publishableKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { data: { user }, error: userError } = await authClient.auth.getUser(accessToken);
-  if (userError || !user?.email || !adminEmails().has(user.email.toLowerCase())) {
-    return new Response(JSON.stringify({ error: 'Administrator access is required.' }), { status: 403, headers });
+  if (!supabaseUrl || !secretKey) {
+    return new Response(JSON.stringify({ error: 'Member management is not configured.' }), { status: 503, headers });
   }
 
   try {

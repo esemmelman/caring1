@@ -51,13 +51,13 @@ npx supabase functions deploy route-matrix
 
 The site accepts a shared, case-sensitive passcode. Its value is stored only in the Supabase `CARING_PASSCODE` Edge Function secret. Never add it to HTML, JavaScript, or a committed configuration file. After a successful login, the browser saves a signed session token for 90 days in local storage. The passcode is never saved in browser storage. The server enforces the original expiration without extending it on return visits. Sign-out clears the saved session on this browser; clearing browser data also requires a new login.
 
-The `member-directory` and `route-matrix` functions validate the passcode or signed session on every request. Their platform JWT checks are disabled because these credentials are not Supabase user JWTs. The service-role-only `caring_passcode_directory()` database function returns visible, locatable members; browser database roles cannot execute it. Passcode access allows viewing the directory and calculating routes. The existing `member-admin` endpoint still requires an administrator's Supabase JWT; the passcode does not grant member-editing permissions.
+The `member-directory`, `member-admin`, and `route-matrix` functions validate the passcode or signed session on every request. Their platform JWT checks are disabled because these credentials are not Supabase user JWTs. The service-role-only `caring_passcode_directory()` database function returns visible, locatable members; browser database roles cannot execute it. Anyone with the correct passcode or an unexpired remembered session may view the directory, calculate routes, and add, edit, or delete members. Deleting a member requires confirmation in the interface.
 
 To release this change together:
 
 1. Apply `supabase/migrations/20260909053614_passcode_access.sql`.
 2. Set `CARING_PASSCODE` using Supabase secret storage (already configured for the current project). To rotate it, put the replacement in an ignored `.env.passcode` file and run `npx supabase secrets set --env-file .env.passcode`.
-3. Configure `CARING_SESSION_SECRET` with a random secret of at least 32 bytes (already configured for this project). Rotating it invalidates existing remembered sessions. Deploy `member-directory` and `route-matrix` with the checked-in `supabase/config.toml` settings: `npx supabase functions deploy member-directory route-matrix --use-api`.
+3. Configure `CARING_SESSION_SECRET` with a random secret of at least 32 bytes (already configured for this project). Rotating it invalidates existing remembered sessions. Deploy `member-directory`, `member-admin`, and `route-matrix` with the checked-in `supabase/config.toml` settings: `npx supabase functions deploy member-directory member-admin route-matrix --use-api`.
 4. Publish the updated static site, including `auth.js`, `app.js`, and `index.html`.
 
 The backend and frontend authentication changes must be released together; the previous email-link frontend cannot access the new passcode endpoints.
