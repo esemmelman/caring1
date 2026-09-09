@@ -1,4 +1,4 @@
-import { validPasscode } from '../_shared/passcode.ts';
+import { authenticate } from '../_shared/session.mjs';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 function configuredKey(jsonName: string, legacyName: string) {
@@ -41,7 +41,8 @@ Deno.serve(async (request) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const secretKey = configuredKey('SUPABASE_SECRET_KEYS', 'SUPABASE_SERVICE_ROLE_KEY');
-  if (!validPasscode(request)) {
+  const session = authenticate(request);
+  if (!session) {
     return new Response(JSON.stringify({ error: 'Incorrect passcode.' }), { status: 401, headers });
   }
 
@@ -62,5 +63,6 @@ Deno.serve(async (request) => {
   return new Response(JSON.stringify({
     members: data ?? [],
     canManage: false,
+    session,
   }), { status: 200, headers });
 });

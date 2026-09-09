@@ -1,4 +1,4 @@
-import { validPasscode } from '../_shared/passcode.ts';
+import { authenticate } from '../_shared/session.mjs';
 const GOOGLE_ROUTES_URL = 'https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix';
 const MAX_DESTINATIONS = 24;
 
@@ -53,7 +53,8 @@ Deno.serve(async (request) => {
     return new Response(JSON.stringify({ error: 'Method not allowed.' }), { status: 405, headers });
   }
 
-  if (!validPasscode(request)) {
+  const session = authenticate(request);
+  if (!session) {
     return new Response(JSON.stringify({ error: 'Incorrect passcode.' }), { status: 401, headers });
   }
 
