@@ -6,10 +6,9 @@
     <meta name="description" content="Find people near a selected community member.">
     <title>Caring Nearby</title>
     <link rel="stylesheet" href="styles.css?v=0.3.0">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.example.js?v=0.3.0"></script>
-    <script src="auth.js?v=0.3.0" defer></script>
-    <script src="app.js?v=0.3.0" defer></script>
+    <script src="auth.js?v=0.3.1" defer></script>
+    <script src="app.js?v=0.3.1" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -34,12 +33,12 @@
         <section class="auth-card" aria-labelledby="auth-title">
           <p class="eyebrow">Private directory</p>
           <h1 id="auth-title">Sign in to Caring Nearby</h1>
-          <p>Enter your invited email address. We’ll send you a secure sign-in link.</p>
+          <p>Enter the passcode to open the member directory.</p>
           <form id="sign-in-form">
-            <label for="sign-in-email">Email address</label>
+            <label for="sign-in-passcode">Passcode</label>
             <div class="auth-fields">
-              <input id="sign-in-email" name="email" type="email" autocomplete="email" required>
-              <button type="submit">Send sign-in link</button>
+              <input id="sign-in-passcode" name="passcode" type="password" autocomplete="current-password" maxlength="128" required>
+              <button type="submit">Unlock directory</button>
             </div>
           </form>
           <p class="auth-status" id="auth-status" role="status"></p>

@@ -1,11 +1,11 @@
 [functions.route-matrix]
-verify_jwt = true
+verify_jwt = false
 
 [functions.refresh-geocodes]
 verify_jwt = false
 
 [functions.member-directory]
-verify_jwt = true
+verify_jwt = false
 
 [functions.member-admin]
 verify_jwt = true

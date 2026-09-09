@@ -1,3 +1,4 @@
+import { validPasscode } from '../_shared/passcode.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 function configuredKey(jsonName: string, legacyName: string) {
@@ -11,14 +12,6 @@ function configuredKey(jsonName: string, legacyName: string) {
   return Deno.env.get(legacyName) ?? '';
 }
 
-function adminEmails() {
-  return new Set(
-    (Deno.env.get('DIRECTORY_ADMIN_EMAILS') ?? '')
-      .split(',')
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean),
-  );
-}
 
 function corsHeaders(request: Request) {
   const allowedOrigin = Deno.env.get('ALLOWED_ORIGIN') ?? '';
@@ -47,30 +40,15 @@ Deno.serve(async (request) => {
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-  const publishableKey = configuredKey('SUPABASE_PUBLISHABLE_KEYS', 'SUPABASE_ANON_KEY');
   const secretKey = configuredKey('SUPABASE_SECRET_KEYS', 'SUPABASE_SERVICE_ROLE_KEY');
-  const authorization = request.headers.get('authorization') ?? '';
-  const accessToken = authorization.replace(/^Bearer\s+/i, '');
-
-  if (!supabaseUrl || !publishableKey || !secretKey || !accessToken) {
-    return new Response(JSON.stringify({ error: 'Unauthorized.' }), { status: 401, headers });
-  }
-
-  const authClient = createClient(supabaseUrl, publishableKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { data: { user }, error: userError } = await authClient.auth.getUser(accessToken);
-
-  if (userError || !user?.email) {
-    return new Response(JSON.stringify({ error: 'Unauthorized.' }), { status: 401, headers });
+  if (!validPasscode(request)) {
+    return new Response(JSON.stringify({ error: 'Incorrect passcode.' }), { status: 401, headers });
   }
 
   const adminClient = createClient(supabaseUrl, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
-  const { data, error } = await adminClient.rpc('caring_directory_members', {
-    requester_email: user.email,
-  });
+  const { data, error } = await adminClient.rpc('caring_passcode_directory');
 
   if (error) {
     const forbidden = error.code === '42501';
@@ -83,6 +61,6 @@ Deno.serve(async (request) => {
 
   return new Response(JSON.stringify({
     members: data ?? [],
-    canManage: adminEmails().has(user.email.toLowerCase()),
+    canManage: false,
   }), { status: 200, headers });
 });

@@ -40,20 +40,27 @@ The member table lives in the dedicated `caring` schema rather than `public`, al
 
 ## Google driving routes
 
-The `route-matrix` Supabase Edge Function proxies Google Routes Compute Route Matrix. It accepts coordinates only and keeps `GOOGLE_MAPS_API_KEY` server-side. Deploy it with JWT verification enabled and configure these function secrets:
+The `route-matrix` Supabase Edge Function proxies Google Routes Compute Route Matrix. It accepts coordinates only and keeps `GOOGLE_MAPS_API_KEY` server-side. The function validates the shared passcode before calling Google. Configure these function secrets:
 
 ```powershell
 npx supabase secrets set GOOGLE_MAPS_API_KEY=your-key ALLOWED_ORIGIN=https://your-site.example
 npx supabase functions deploy route-matrix
 ```
 
-The public Supabase project URL, publishable key, function URL, and Auth redirect URL live in `config.example.js`. These values are safe for browser use; never add a secret/service-role key or `GOOGLE_MAPS_API_KEY` there. The site uses invite-only email magic links and forwards the signed-in user's short-lived access token to the function. Until authentication and the function are available, route calculations fall back to direct distance.
+## Passcode access
 
-In Supabase Auth settings, set the Site URL and an exact redirect URL to `https://esemmelman.github.io/caring1/`. Keep public sign-ups disabled and invite permitted users from Authentication > Users.
+The site accepts a shared, case-sensitive passcode. Its value is stored only in the Supabase `CARING_PASSCODE` Edge Function secret. Never add it to HTML, JavaScript, or a committed configuration file. The browser keeps the entered credential in memory and sends it over HTTPS; refresh or sign-out locks the directory again.
 
-The `member-directory` Edge Function validates the caller's Supabase JWT and confirms that the authenticated email exists in `caring.members`. It returns names, addresses, coordinates, email addresses, and phone numbers for visible locatable members so authorized users can view contact details. The endpoint is unavailable to anonymous users and non-member project accounts.
+The `member-directory` and `route-matrix` functions validate the passcode on every request. Their platform JWT checks are disabled because these credentials are not Supabase user JWTs. The service-role-only `caring_passcode_directory()` database function returns visible, locatable members; browser database roles cannot execute it. Passcode access allows viewing the directory and calculating routes. The existing `member-admin` endpoint still requires an administrator's Supabase JWT; the passcode does not grant member-editing permissions.
 
-The `member-admin` Edge Function restricts create, update, and delete operations to emails in the `DIRECTORY_ADMIN_EMAILS` function secret. Add and edit requests geocode the submitted address server-side before saving; delete requests permanently remove the selected row after client confirmation.
+To release this change together:
+
+1. Apply `supabase/migrations/20260909053614_passcode_access.sql`.
+2. Set `CARING_PASSCODE` using Supabase secret storage (already configured for the current project). To rotate it, put the replacement in an ignored `.env.passcode` file and run `npx supabase secrets set --env-file .env.passcode`.
+3. Deploy `member-directory` and `route-matrix` with the checked-in `supabase/config.toml` settings: `npx supabase functions deploy member-directory route-matrix --use-api`.
+4. Publish the updated static site, including `auth.js`, `app.js`, and `index.html`.
+
+The backend and frontend authentication changes must be released together; the previous email-link frontend cannot access the new passcode endpoints.
 
 The `caring.members.dont_show` flag excludes addressless records and all but one member at a duplicate normalized address. For existing duplicates, the alphabetically first `name_first_last` record remains visible.
 

@@ -2,70 +2,41 @@ const authConfig = window.CARING_CONFIG ?? {};
 const authGate = document.querySelector('#auth-gate');
 const workspace = document.querySelector('#workspace');
 const signInForm = document.querySelector('#sign-in-form');
-const signInEmail = document.querySelector('#sign-in-email');
+const passcodeInput = document.querySelector('#sign-in-passcode');
 const authStatus = document.querySelector('#auth-status');
-const authEmail = document.querySelector('#auth-email');
 const signOutButton = document.querySelector('#sign-out-button');
-
-if (!window.supabase?.createClient
-  || !authConfig.supabaseUrl
-  || !authConfig.supabasePublishableKey) {
-  authStatus.textContent = 'Sign-in is not configured. Please contact the site administrator.';
-  signInForm.hidden = true;
-  throw new Error('Supabase Auth configuration is missing.');
-}
-
-const authClient = window.supabase.createClient(
-  authConfig.supabaseUrl,
-  authConfig.supabasePublishableKey,
-);
-window.caringSupabase = authClient;
-
-authConfig.getAccessToken = async () => {
-  const { data, error } = await authClient.auth.getSession();
-  if (error) throw error;
-  return data.session?.access_token ?? '';
-};
-
-function showSession(session) {
-  const signedIn = Boolean(session);
-  authGate.hidden = signedIn;
-  workspace.hidden = !signedIn;
-  authEmail.hidden = !signedIn;
-  signOutButton.hidden = !signedIn;
-  authEmail.textContent = session?.user?.email ?? '';
-}
-
+let passcode = '';
+// In-memory credential: refreshing or signing out locks the directory.
+authConfig.getAccessToken = async () => passcode;
 signInForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const submitButton = signInForm.querySelector('button');
-  submitButton.disabled = true;
-  authStatus.textContent = 'Sending your secure link…';
-
-  const { error } = await authClient.auth.signInWithOtp({
-    email: signInEmail.value.trim(),
-    options: {
-      emailRedirectTo: authConfig.authRedirectUrl,
-      shouldCreateUser: false,
-    },
-  });
-
-  authStatus.textContent = error
-    ? error.message
-    : 'Check your email and open the sign-in link on this device.';
-  submitButton.disabled = false;
+  const button = signInForm.querySelector('button');
+  button.disabled = true;
+  authStatus.textContent = 'Checking passcode…';
+  try {
+    if (!authConfig.memberDirectoryUrl) throw new Error('Directory access is not configured.');
+    const candidate = passcodeInput.value;
+    const response = await fetch(authConfig.memberDirectoryUrl, {
+      headers: { Authorization: 'Bearer ' + candidate }, cache: 'no-store',
+    });
+    if (response.status === 401) throw new Error('Incorrect passcode. Please try again.');
+    if (!response.ok) throw new Error('Unable to unlock the directory. Please try again.');
+    const directory = await response.json();
+    passcode = candidate;
+    passcodeInput.value = '';
+    authGate.hidden = true;
+    workspace.hidden = false;
+    signOutButton.hidden = false;
+    authStatus.textContent = '';
+    window.dispatchEvent(new CustomEvent('caring-unlocked', { detail: directory }));
+  } catch (error) {
+    authStatus.textContent = error.message;
+    passcodeInput.value = '';
+    passcodeInput.focus();
+  } finally { button.disabled = false; }
 });
-
-signOutButton.addEventListener('click', async () => {
-  signOutButton.disabled = true;
-  const { error } = await authClient.auth.signOut();
-  if (error) authStatus.textContent = error.message;
-  signOutButton.disabled = false;
-});
-
-authClient.auth.onAuthStateChange((_event, session) => showSession(session));
-
-authClient.auth.getSession().then(({ data, error }) => {
-  if (error) authStatus.textContent = error.message;
-  showSession(data.session);
+signOutButton.addEventListener('click', () => {
+  passcode = '';
+  workspace.hidden = true;
+  window.location.reload();
 });

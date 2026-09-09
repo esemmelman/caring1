@@ -352,6 +352,10 @@ async function loadMembers(preferredId = null) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body.error ?? 'Unable to load the directory.');
 
+  await showDirectory(body, preferredId);
+}
+
+async function showDirectory(body, preferredId = null) {
   canManage = body.canManage === true;
   directoryActions.hidden = !canManage;
   members = (body.members ?? []).map((member) => ({
@@ -381,11 +385,11 @@ deleteMemberButton.addEventListener('click', deleteSelectedMember);
 memberForm.addEventListener('submit', saveMember);
 document.querySelector('#member-dialog-close').addEventListener('click', () => memberDialog.close());
 document.querySelector('#member-cancel-button').addEventListener('click', () => memberDialog.close());
-loadMembers().catch((error) => {
+window.addEventListener('caring-unlocked', (event) => showDirectory(event.detail).catch((error) => {
   console.error(error);
   list.innerHTML = '';
   const message = document.createElement('p');
   message.className = 'no-matches';
   message.textContent = error.message;
   list.append(message);
-});
+}));

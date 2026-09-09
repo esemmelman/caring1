@@ -1,3 +1,4 @@
+import { validPasscode } from '../_shared/passcode.ts';
 const GOOGLE_ROUTES_URL = 'https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix';
 const MAX_DESTINATIONS = 24;
 
@@ -50,6 +51,10 @@ Deno.serve(async (request) => {
 
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed.' }), { status: 405, headers });
+  }
+
+  if (!validPasscode(request)) {
+    return new Response(JSON.stringify({ error: 'Incorrect passcode.' }), { status: 401, headers });
   }
 
   const googleApiKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
